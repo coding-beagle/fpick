@@ -17,7 +17,7 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: fpick-linux
-            binary_name: fpick
+            binary_name: FPick
           - os: windows-latest
             artifact_name: fpick-windows
             binary_name: fpick.exe
