@@ -29,3 +29,11 @@ Use the '-d' or '--directory' flags to return directories only:
 Use the '-f' or '--file_extension' flags to filter by file extension:
 
 ![](./readme_resources/filefilter_demo.gif)
+
+## To create a release build:
+
+```
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+Any tag starting with v and numerical version number should work (?)
