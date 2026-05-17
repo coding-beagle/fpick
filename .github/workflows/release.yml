@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write  # needed to create releases
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: fpick-linux
+            binary_name: fpick
+          - os: windows-latest
+            artifact_name: fpick-windows
+            binary_name: fpick.exe
+          - os: macos-latest
+            artifact_name: fpick-macos
+            binary_name: fpick
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pyinstaller build
+
+      - name: Install make (Windows)
+        if: matrix.os == 'windows-latest'
+        run: choco install make -y
+
+      - name: Run make build
+        run: make build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.binary_name }}
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Rename binaries for release
+        run: |
+          mkdir release
+          cp artifacts/fpick-linux/fpick   release/fpick-linux
+          cp artifacts/fpick-macos/fpick   release/fpick-macos
+          cp artifacts/fpick-windows/fpick.exe release/fpick-windows.exe
+          chmod +x release/fpick-linux release/fpick-macos
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
