@@ -7,7 +7,6 @@ from tkinter import filedialog
 
 import click
 
-FPICK_CACHE = "fpickcache"  # previous directory
 LAST_DIR_KEY = "last_dir"
 
 
