@@ -1,5 +1,7 @@
 # FPick
 
+[![Release](https://github.com/coding-beagle/fpick/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/coding-beagle/fpick/actions/workflows/release.yml)
+
 FPick is a simple utility that allows users to access their OS file dialog from the CLI.
 
 This is particularly useful for image / video browsing with scripts.
