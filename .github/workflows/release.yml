@@ -38,7 +38,9 @@ jobs:
         run: choco install make -y
     
       - name: Install dependencies
-        run: make install-dev
+        run: |
+          make venv
+          make install-dev
 
       - name: Run make build
         run: make build
