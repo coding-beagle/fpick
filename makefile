@@ -1,56 +1,48 @@
-.PHONY: clean clean-venv clean-build clean-cache venv build install install-dev test
+.PHONY: help clean clean-venv clean-build clean-cache venv build install install-dev test
+.DEFAULT_GOAL := help
+
+# --- OS detection ---
+ifeq ($(OS),Windows_NT)
+    VENV_BIN := .venv/Scripts
+    EXE      := .exe
+    RM       := rm -rf
+else
+    VENV_BIN := .venv/bin
+    EXE      :=
+    RM       := rm -rf
+endif
+
+PY  := $(VENV_BIN)/python
+PIP := $(PY) -m pip
 
 help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "}; /^[a-zA-Z_-]+:.*?##/ { printf "\033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-.DEFAULT_GOAL := help
+clean: clean-venv clean-build clean-cache ## Clean everything
 
-clean: ## Clean any generated files and environments
-	{ \
-		make clean-venv ;\
-		make clean-build ;\
-		make clean-cache ;\
-	}
+clean-venv: ## Remove virtual environment
+	$(RM) .venv
 
+clean-build: ## Remove build artifacts
+	$(RM) build dist *.egg-info
 
-clean-venv: ## Clean virtual environment
-	rm -rf .venv
+clean-cache: ## Remove caches
+	$(PY) -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]"
 
-clean-build: ## Clean build folder
-	rm -rf dist
-
-clean-cache: ## Clean .pyc and .egg-info files
-	{ \
-    	rm -rf build/ dist/ *.egg-info/ ;\
-    	find . -type d -name __pycache__ -delete ;\
-    	find . -name "*.pyc" -delete	;\
-	}
-	
-venv: ## Make a new virtual environment
+venv: ## Create a virtual environment
 	python -m venv .venv
+	$(PIP) install --upgrade pip
 
-build: ## Create a wheel distribution
-	python setup.py sdist bdist_wheel
-	pyinstaller --onefile fpick/__main__.py
-	NAME=$$(python setup.py --name); \
-	mv dist/__main__$(EXE) dist/$$NAME$(EXE)
-
-EXE := $(if $(filter Windows_NT,$(OS)),.exe,)
+build: ## Build wheel + standalone executable
+	$(PY) -m build
+	$(PY) -m PyInstaller --onefile fpick/__main__.py
+	$(PY) -c "import sys, shutil, subprocess; name = subprocess.check_output([sys.executable, 'setup.py', '--name']).decode().strip(); shutil.move(f'dist/__main__$(EXE)', f'dist/{name}$(EXE)')"
 
 install: ## Install the module
-	{ \
-		. .venv/scripts/activate ;\
-		pip install -e . ;\
-	}
+	$(PIP) install -e .
 
 install-dev: ## Install the module + dev tools
-	{ \
-		. .venv/scripts/activate ;\
-		pip install -e .[dev] ;\
-	}
+	$(PIP) install -e .[dev]
 
 test: ## Run pytest tests
-	{ \
-		. .venv/scripts/activate ;\
-		python -m pytest Tests/ -v ;\
-	}
+	$(PY) -m pytest Tests/ -v
