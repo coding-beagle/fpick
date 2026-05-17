@@ -7,7 +7,7 @@ setup(
     author="coding-beagle",
     author_email="nicholasp.teague@gmail.com",
     packages=["FPick"],
-    install_requires=["Click", "tkinter"],
+    install_requires=["Click"],
     extras_require={
         "dev": ["pytest", "pytest-cov", "wheel"],
         "test": ["pytest", "pytest-cov"],
