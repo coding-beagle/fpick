@@ -68,7 +68,7 @@ jobs:
       - name: Rename binaries for release
         run: |
           mkdir release
-          cp artifacts/fpick-linux/fpick   release/fpick-linux
+          cp artifacts/fpick-linux/FPick   release/fpick-linux
           cp artifacts/fpick-macos/fpick   release/fpick-macos
           cp artifacts/fpick-windows/fpick.exe release/fpick-windows.exe
           chmod +x release/fpick-linux release/fpick-macos
