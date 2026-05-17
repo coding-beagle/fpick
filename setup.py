@@ -9,7 +9,7 @@ setup(
     packages=["FPick"],
     install_requires=["Click"],
     extras_require={
-        "dev": ["pytest", "pytest-cov", "wheel"],
+        "dev": ["pytest", "pytest-cov", "wheel", "pyinstaller"],
         "test": ["pytest", "pytest-cov"],
     },
     entry_points="""

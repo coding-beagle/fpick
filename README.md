@@ -12,6 +12,14 @@ Running a python script that takes an image or video file as an output:
 python some_script.py `fpick`
 ```
 
+For those unfamiliar with terminal use (I.E. the primary target for this tool): 
+
+```
+# either way works
+echo `fpick`  # the backticks are command substitution: the output of 'fpick' is passed as the argument to 'echo'
+echo $(fpick) # more modern syntax for command substitution
+```
+
 ![](./readme_resources/first_demo.gif)
 
 Use the '-d' or '--directory' flags to return directories only:
