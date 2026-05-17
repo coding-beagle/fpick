@@ -1,31 +1,34 @@
-import click
 import os
+import sys
 import shelve
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog
 
-root = tk.Tk()
-root.withdraw()
-
+import click
 
 FPICK_CACHE = "fpickcache"  # previous directory
 LAST_DIR_KEY = "last_dir"
 
 
-def file_extension_string_to_arg(ext_string: str) -> tuple[str, str]:
-    """Check if user has put a . before the ext string, and also create a label"""
-    stripped_string = ext_string.strip()
-
-    if stripped_string.startswith("."):
-        label: str = stripped_string.split(".")[-1]
-
-        return (f"{label.upper()} Files (*{stripped_string})", stripped_string)
+def cache_path() -> str:
+    if sys.platform == "win32":
+        base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local"))
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library/Caches"
     else:
-        label: str = stripped_string
-        return (
-            f"{label.upper()} Files (*{stripped_string.lower()})",
-            f".{stripped_string.lower()}",
-        )
+        base = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+    d = base / "fpick"
+    d.mkdir(parents=True, exist_ok=True)
+    return str(d / "cache")
+
+
+def file_extension_string_to_arg(ext: str) -> tuple[str, str]:
+    """Check if user has put a . before the ext string, and also create a label"""
+    ext = ext.strip()
+    if not ext.startswith("."):
+        ext = f".{ext.lower()}"
+    return (f"*{ext}", ext)
 
 
 @click.command()
@@ -37,38 +40,44 @@ def file_extension_string_to_arg(ext_string: str) -> tuple[str, str]:
     help="Select directories instead of files",
 )
 @click.option(
-    "--file_extension",
+    "--file-extension",
     "-f",
+    "extensions",
+    multiple=True,
     default=None,
     help="File extension to filter by",
 )
-def cli(directory, file_extension):
+def cli(directory, extensions):
     """Return a selected file to stdout"""
+    root = tk.Tk()
+    root.withdraw()
 
-    with shelve.open(FPICK_CACHE) as fcache:
-        last_dir = fcache.get(LAST_DIR_KEY, None)
+    try:
+        with shelve.open(cache_path()) as fcache:
+            last_dir = fcache.get(LAST_DIR_KEY) or os.getcwd()
 
-        if last_dir is None:
-            last_dir = os.getcwd()
+            to_cache: str = ""
 
-        to_cache: str = ""
+            path = None
 
-        if directory:
-            file_path: str = filedialog.askdirectory(initialdir=last_dir)
-            to_cache = file_path
-        else:
-
-            if file_extension:
-                file_path: str = filedialog.askopenfilename(
-                    initialdir=last_dir,
-                    filetypes=[file_extension_string_to_arg(file_extension)],
+            if directory:
+                path = filedialog.askdirectory(initialdir=last_dir)
+            elif extensions:
+                filetypes = [file_extension_string_to_arg(e) for e in extensions]
+                path = filedialog.askopenfilename(
+                    initialdir=last_dir, filetypes=filetypes
                 )
             else:
-                file_path: str = filedialog.askopenfilename(initialdir=last_dir)
-            to_cache = os.path.dirname(file_path)
+                path = filedialog.askopenfilename(initialdir=last_dir)
 
-        click.echo(file_path)
+            if not path or path == "":
+                sys.exit(1)
 
-        if to_cache != "":
-            fcache[LAST_DIR_KEY] = to_cache
-            fcache.sync()
+            click.echo(path)
+
+            to_cache = os.path.dirname(path)
+            if to_cache != "":
+                fcache[LAST_DIR_KEY] = to_cache
+                fcache.sync()
+    finally:
+        root.destroy()
