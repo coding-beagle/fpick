@@ -6,7 +6,7 @@ setup(
     description="Open the file dialog from CLI",
     author="coding-beagle",
     author_email="nicholasp.teague@gmail.com",
-    packages=["FPick"],
+    packages=["fpick"],
     install_requires=["Click"],
     extras_require={
         "dev": ["pytest", "pytest-cov", "wheel", "pyinstaller"],
