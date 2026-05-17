@@ -31,6 +31,11 @@ venv: ## Make a new virtual environment
 
 build: ## Create a wheel distribution
 	python setup.py sdist bdist_wheel
+	pyinstaller --onefile fpick/__main__.py
+	NAME=$$(python setup.py --name); \
+	mv dist/__main__$(EXE) dist/$$NAME$(EXE)
+
+EXE := $(if $(filter Windows_NT,$(OS)),.exe,)
 
 install: ## Install the module
 	{ \

@@ -44,7 +44,7 @@ def file_extension_string_to_arg(ext: str) -> tuple[str, str]:
     "extensions",
     multiple=True,
     default=None,
-    help="File extension to filter by",
+    help="File extension to filter by (e.g. '-f .png')",
 )
 def cli(directory, extensions):
     """Return a selected file to stdout"""
@@ -80,3 +80,7 @@ def cli(directory, extensions):
                 fcache.sync()
     finally:
         root.destroy()
+
+
+if __name__ == "__main__":
+    cli()
